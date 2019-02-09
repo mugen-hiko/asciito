@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"encoding/csv"
 	"fmt"
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -23,6 +25,23 @@ var rootCmd = &cobra.Command{
 	`),
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		table := tablewriter.NewWriter(os.Stdout)
+
+		records, err := sourceData()
+
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+
+			os.Exit(1)
+		}
+
+		table.SetHeader(records[0])
+
+		table.SetAutoFormatHeaders(false)
+
+		table.AppendBulk(records[1:])
+
+		table.Render()
 	},
 }
 
@@ -69,4 +88,12 @@ func initConfig() {
 	viper.SetEnvPrefix(appName)
 
 	viper.AutomaticEnv()
+}
+
+func sourceData() ([][]string, error) {
+	csv := csv.NewReader(os.Stdin)
+
+	csv.Comma = []rune(viper.GetString("delimiter"))[0]
+
+	return csv.ReadAll()
 }
