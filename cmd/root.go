@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/csv"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
@@ -30,9 +31,7 @@ var rootCmd = &cobra.Command{
 		records, err := sourceData()
 
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-
-			os.Exit(1)
+			log.Fatal(err)
 		}
 
 		table.SetHeader(records[0])
@@ -47,13 +46,13 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
 
 func init() {
+	log.SetFlags(0)
+
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file")
@@ -70,9 +69,7 @@ func initConfig() {
 		home, err := homedir.Dir()
 
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-
-			os.Exit(1)
+			log.Fatal(err)
 		}
 
 		viper.AddConfigPath(home)
