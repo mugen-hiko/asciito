@@ -34,11 +34,15 @@ var rootCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		table.SetHeader(records[0])
+		header, body := splitHeaderAndBody(records)
 
-		table.SetAutoFormatHeaders(false)
+		if len(header) != 0 {
+			table.SetHeader(header)
 
-		table.AppendBulk(records[1:])
+			table.SetAutoFormatHeaders(false)
+		}
+
+		table.AppendBulk(body)
 
 		table.Render()
 	},
@@ -58,8 +62,10 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file")
 
 	rootCmd.Flags().StringP("delimiter", "d", ",", "field delimiter character")
+	rootCmd.Flags().BoolP("skip-header", "s", false, "ignore the first line")
 
 	viper.BindPFlag("delimiter", rootCmd.Flags().Lookup("delimiter"))
+	viper.BindPFlag("skip-header", rootCmd.Flags().Lookup("skip-header"))
 }
 
 func initConfig() {
@@ -93,4 +99,17 @@ func sourceData() ([][]string, error) {
 	csv.Comma = []rune(viper.GetString("delimiter"))[0]
 
 	return csv.ReadAll()
+}
+
+func splitHeaderAndBody(records [][]string) ([]string, [][]string) {
+	switch {
+	case viper.GetBool("skip-header"):
+		return []string{}, records
+	case len(records) == 0:
+		return []string{}, [][]string{}
+	case len(records) == 1:
+		return records[0], [][]string{}
+	default:
+		return records[0], records[1:]
+	}
 }
