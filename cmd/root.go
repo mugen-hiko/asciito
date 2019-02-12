@@ -25,6 +25,7 @@ var rootCmd = &cobra.Command{
 		and other delimiter-separated text files) on a terminal.
 	`),
 	Args: cobra.MaximumNArgs(1),
+	Version: "0.0.1",
 	Run: func(cmd *cobra.Command, args []string) {
 		table := tablewriter.NewWriter(os.Stdout)
 
